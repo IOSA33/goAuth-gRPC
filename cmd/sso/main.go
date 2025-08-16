@@ -7,6 +7,7 @@ import (
 
 func main() {
 	// TODO: init config: cleanEnv
+	// Starting congig
 	cfg := config.MustLoad()
 
 	fmt.Println(cfg)
