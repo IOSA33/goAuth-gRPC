@@ -50,7 +50,7 @@ func fetchConfigPath() string {
 	flag.Parse()
 
 	// If starting with a flag. Better when if project is local
-	// --config="path/to/config.yaml"
+	// go run cmd/sso/main.go --config=./config/local.yaml
 	if res == "" {
 		res = os.Getenv("CONFIG_PATH")
 	}

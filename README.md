@@ -1,4 +1,4 @@
 # SSO
 
 Link to Protobuf contract:
- - https://github.com/IOSA33/Protobuf-Contract
+ - https://github.com/IOSA33/protos

@@ -2,17 +2,46 @@ package main
 
 import (
 	"authService/internal/config"
-	"fmt"
+	"log/slog"
+	"os"
+)
+
+const (
+	envLocal = "local"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 func main() {
-	// TODO: init config: cleanEnv
-	// Starting congig
+	// Init config: cleanEnv
 	cfg := config.MustLoad()
 
-	fmt.Println(cfg)
-
-	// TODO: init logger: slog
+	// Init logger: slog
+	log := setupLogger(cfg.Env)
+	log.Info("Starting application",
+		slog.Any("config", cfg),
+	)
 
 	// TODO: app
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case envLocal:
+		log = slog.New(
+			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envDev:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
+		)
+	case envProd:
+		log = slog.New(
+			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
+		)
+	}
+
+	return log
 }
