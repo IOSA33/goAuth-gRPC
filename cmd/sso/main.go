@@ -1,6 +1,7 @@
 package main
 
 import (
+	"authService/internal/app"
 	"authService/internal/config"
 	"log/slog"
 	"os"
@@ -21,6 +22,12 @@ func main() {
 	log.Info("Starting application",
 		slog.Any("config", cfg),
 	)
+
+	// Confining application from config file
+	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
+
+	// Starting server
+	application.GRPCrv.MustRun()
 
 	// TODO: app
 }
