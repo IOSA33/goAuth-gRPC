@@ -5,6 +5,8 @@ import (
 	"authService/internal/config"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -26,10 +28,30 @@ func main() {
 	// Confining application from config file
 	application := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
 
+	// go run cmd/sso/main.go --config=./config/local.yaml
 	// Starting server
-	application.GRPCrv.MustRun()
+	go application.GRPCrv.MustRun()
 
-	// TODO: app
+	// How it works: How we know channel is a lock function, so it waits until something
+	// will be written in stop channel and only then it'll do unlock and continue reading code rows.
+	// And in a different go routine "go application.GRPCrv.MustRun()"
+	// application will get serve requests.
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	// If signal.Notify requests some signal, the signal will be written in stop channel,
+	// and after that it will unlock the channel and the code will continue to the next rows.
+	// So how it works, after starting application it waits for the stop signals and after that
+	// it goes to the row "application.GRPCrv.Stop()" to do graceful shutdown.
+	sign := <-stop
+
+	log.Info("application stopping", slog.String("signal:", sign.String()))
+
+	// Graceful shutdown
+	application.GRPCrv.Stop()
+
+	// Printing "application stopped"
+	log.Info("application stopped")
 }
 
 func setupLogger(env string) *slog.Logger {
