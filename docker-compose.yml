@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  migrator:
+    build: .
+    volumes:
+      - ./migrations:/app/migrations
+      - ./storage:/app/storage
+    command: >
+      --storage-path=/app/storage/sso.db
+      --migrations-path=/app/migrations
+      --migrations-table=migrations
+    profiles: ["migrate"]
+
+  # Optional if we want to just start application
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage:/app/storage
+    environment:
+      - DB_PATH=/app/storage/sso.db
+    depends_on:
+      - migrator
