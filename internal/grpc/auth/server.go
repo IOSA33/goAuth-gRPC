@@ -19,7 +19,7 @@ type Auth interface {
 		ctx context.Context,
 		email string,
 		password string,
-	) (userID int, err error)
+	) (userID int64, err error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
 }
 
