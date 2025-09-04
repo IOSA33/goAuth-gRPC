@@ -103,7 +103,7 @@ func (a *Auth) Login(ctx context.Context, email string, password string, appID i
 
 // RegisterNewUser registers new user in the system and returns user ID.
 // If user with given username already exists, returns error.
-func (a *Auth) RegisterNewUser(ctx context.Context, email string, password string) (int64, error) {
+func (a *Auth) RegisterNewUser(ctx context.Context, email string, pass string) (int64, error) {
 	const op = "auth.RegisterNewUser"
 
 	log := a.log.With(
@@ -113,7 +113,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 
 	log.Info("registering new user")
 
-	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	password, err := bcrypt.GenerateFromPassword([]byte(pass), bcrypt.DefaultCost)
 	if err != nil {
 
 		if errors.Is(err, storage.ErrUserExists) {
@@ -125,7 +125,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, password strin
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	id, err := a.usrSaver.SaveUser(ctx, email, passHash)
+	id, err := a.usrSaver.SaveUser(ctx, email, password)
 	if err != nil {
 		log.Error("failed to save user", sl.Err(err))
 		return 0, fmt.Errorf("%s: %w", op, err)

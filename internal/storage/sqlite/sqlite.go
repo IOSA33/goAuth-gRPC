@@ -33,7 +33,7 @@ func (s *Storage) Close() error {
 func (s *Storage) SaveUser(ctx context.Context, email string, passHash []byte) (uid int64, err error) {
 	const op = "storage.sqlite.SaveUser"
 
-	stmt, err := s.db.Prepare("INSERT INTO users (email, passHash) values (?, ?)")
+	stmt, err := s.db.Prepare("INSERT INTO users (email, pass_hash) values (?, ?)")
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
@@ -130,4 +130,17 @@ func (s *Storage) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	}
 
 	return isAdmin, nil
+}
+
+// MakeAdmin changes user role to admin
+func (s *Storage) MakeAdmin(ctx context.Context, userID int64) error {
+	const op = "storage.sqlite.MakeAdmin"
+
+	stmt, err := s.db.Prepare("UPDATE users SET is_admin = true WHERE id = ?")
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	_, err = stmt.ExecContext(ctx, userID)
+	return nil
 }
