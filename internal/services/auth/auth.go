@@ -28,6 +28,7 @@ type UserSaver interface {
 type UserProvider interface {
 	User(ctx context.Context, email string) (models.User, error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
+	MakeAdmin(ctx context.Context, userID int64) (int64, error)
 }
 
 type AppProvider interface {
@@ -157,6 +158,31 @@ func (a *Auth) IsAdmin(ctx context.Context, userID int64) (bool, error) {
 	}
 
 	log.Info("checked if user is admin", slog.Bool("is_admin", isAdmin))
+
+	return isAdmin, nil
+}
+
+// MakeAdmin is a function that changes user admin status to admin
+func (a *Auth) MakeAdmin(ctx context.Context, userID int64) (int64, error) {
+	const op = "services.Auth.MakeAdmin"
+
+	log := a.log.With(
+		slog.String("op", op),
+		slog.Int64("user_id", userID),
+	)
+
+	log.Info("Starting MakeAdmin")
+
+	isAdmin, err := a.usrProvider.MakeAdmin(ctx, userID)
+	if err != nil {
+		if errors.Is(err, storage.ErrAppNotFound) {
+			log.Warn("user not found", sl.Err(err))
+			return 0, fmt.Errorf("%s: %w", op, ErrInvalidAppID)
+		}
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	log.Info("Completing MakeAdmin", slog.Int64("is_admin", isAdmin))
 
 	return isAdmin, nil
 }

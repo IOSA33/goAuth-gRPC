@@ -21,6 +21,7 @@ type Auth interface {
 		password string,
 	) (userID int64, err error)
 	IsAdmin(ctx context.Context, userID int64) (bool, error)
+	MakeAdmin(ctx context.Context, userID int64) (int64, error)
 }
 
 type serverAPI struct {
@@ -86,6 +87,22 @@ func (s *serverAPI) IsAdmin(ctx context.Context, req *ssov1.IsAdminRequest) (*ss
 	}, nil
 }
 
+func (s *serverAPI) MakeAdmin(ctx context.Context, req *ssov1.MakeAdminRequest) (*ssov1.MakeAdminResponse, error) {
+	if err := validateMakeAdmin(req); err != nil {
+		return nil, err
+	}
+
+	makeAdmin, err := s.auth.MakeAdmin(ctx, req.GetUserId())
+	if err != nil {
+		// TODO: ...
+		return nil, status.Error(codes.Internal, "Internal error")
+	}
+
+	return &ssov1.MakeAdminResponse{
+		MakeAdmin: makeAdmin,
+	}, nil
+}
+
 func validateLogin(req *ssov1.LoginRequest) error {
 	if req.GetEmail() == "" {
 		return status.Error(codes.InvalidArgument, "email is required")
@@ -117,6 +134,14 @@ func validateRegister(req *ssov1.RegisterRequest) error {
 func validateIsAdmin(req *ssov1.IsAdminRequest) error {
 	if req.UserId == emptyValue {
 		return status.Error(codes.InvalidArgument, "UserID is required")
+	}
+
+	return nil
+}
+
+func validateMakeAdmin(req *ssov1.MakeAdminRequest) error {
+	if req.UserId == emptyValue {
+		return status.Error(codes.InvalidArgument, "UserID is required, user")
 	}
 
 	return nil
